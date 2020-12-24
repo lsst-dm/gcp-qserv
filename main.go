@@ -16,17 +16,12 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
-
-	"golang.org/x/net/context"
-	"golang.org/x/oauth2/google"
-	"google.golang.org/api/container/v1"
 )
 
 func main() {
 
-	projectPtr := flag.String("project", "qserv-dev-3d7e", "Identifier of GCP project")
+	project := flag.String("project", "qserv-dev-3d7e", "Identifier of GCP project")
 
 	region := "us-central1"
 	cluster := "qserv-dev"
@@ -39,23 +34,16 @@ func main() {
 
 	flag.Parse()
 
-	ctx := context.Background()
-
-	c, err := google.DefaultClient(ctx, container.CloudPlatformScope)
+	// create GCloud Client
+	gcloud, err := NewGCloudClient(cluster, *project, region)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error creating GCloud client")
 	}
 
-	containerService, err := container.New(c)
+	gcloudContainer, err := gcloud.NewGCloudContainerClient()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error creating GCloudContainer client")
 	}
-
-	// The name (project, location, cluster, node pool id) of the node pool to set
-	// size.
-	// Specified in the format 'projects/*/locations/*/clusters/*/nodePools/*'.
-
-	clusterName := fmt.Sprintf("projects/%s/locations/%s/clusters/%s", *projectPtr, region, cluster)
 
 	sizeCzar := *sizeCzarPtr
 	sizeWorker := *sizeWorkerPtr
@@ -64,27 +52,8 @@ func main() {
 		sizeWorker = 0
 	}
 
-	fmt.Printf("Resizing czar node pool to %d", sizeCzar)
-	resizeNodePool(ctx, clusterName, czarNodePool, containerService, sizeCzar)
-	fmt.Printf("Resizing worker node pool to %d", sizeWorker)
-	resizeNodePool(ctx, clusterName, workerNodePool, containerService, sizeWorker)
-
-}
-
-func resizeNodePool(ctx context.Context, clusterName string, nodePoolName string,
-	containerService *container.Service, size int64) {
-
-	name := fmt.Sprintf("%s/nodePools/%s", clusterName, nodePoolName)
-	rb := &container.SetNodePoolSizeRequest{
-		// TODO: Add desired fields of the request body.
-	}
-	rb.NodeCount = size
-
-	resp, err := containerService.Projects.Locations.Clusters.NodePools.SetSize(name, rb).Context(ctx).Do()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// TODO: Change code below to process the `resp` object:
-	fmt.Printf("%#v\n", resp)
+	log.Printf("Resizing czar node pool to %d", sizeCzar)
+	gcloudContainer.SetNodePoolSize(czarNodePool, sizeCzar)
+	log.Printf("Resizing worker node pool to %d", sizeWorker)
+	gcloudContainer.SetNodePoolSize(workerNodePool, sizeWorker)
 }
