@@ -52,8 +52,8 @@ func main() {
 		sizeWorker = 0
 	}
 
-	log.Printf("Resizing czar node pool to %d", sizeCzar)
-	gcloudContainer.SetNodePoolSize(czarNodePool, sizeCzar)
 	log.Printf("Resizing worker node pool to %d", sizeWorker)
 	gcloudContainer.SetNodePoolSize(workerNodePool, sizeWorker)
+	log.Printf("Resizing czar node pool to %d", sizeCzar)
+	gcloudContainer.SetNodePoolSize(czarNodePool, sizeCzar)
 }
