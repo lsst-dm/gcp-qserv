@@ -1,3 +1,5 @@
+
+# gcloud projects list
 PROJECT="qserv-dev-3d7e"
 PROJECT="qserv-int-8069"
 REGION="us-central1"
