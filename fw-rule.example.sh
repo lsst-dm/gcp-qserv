@@ -6,6 +6,8 @@ gcloud container clusters list
 
 CLUSTER_NAME="qserv-dev"
 
+gcloud container clusters describe "$CLUSTER_NAME" --region=us-central1 | grep masterIpv4CidrBlock
+
 gcloud compute firewall-rules list \
     --filter "name~^gke-${CLUSTER_NAME}" \
     --format 'table(
